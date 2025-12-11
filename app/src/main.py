@@ -1,6 +1,11 @@
-from typing import List
 import pandas as pd
+from pathlib import Path
+from typing import List
 
+APP_DIR = Path(__file__).resolve().parent.parent
+FILES_DIR = APP_DIR / 'files'
+INPUT_DIR = FILES_DIR / 'input'
+OUTPUT_DIR = FILES_DIR / 'output'
 
 ################################################################################
 # Ingestion
@@ -31,10 +36,10 @@ def analyze(po: pd.DataFrame, invoice: pd.DataFrame) -> List[pd.DataFrame]:
 
 
 def main():
-    po = pd.read_excel('PO.xlsx')
-    invoice1 = pd.read_excel('Invoices.xlsx', sheet_name="Invoice1")
-    invoice2 = pd.read_excel('Invoices.xlsx', sheet_name="Invoice2")
-    invoice3 = pd.read_excel('Invoices.xlsx', sheet_name="Invoice3")
+    po = pd.read_excel(INPUT_DIR / 'PO.xlsx')
+    invoice1 = pd.read_excel(INPUT_DIR / 'Invoices.xlsx', sheet_name="Invoice1")
+    invoice2 = pd.read_excel(INPUT_DIR / 'Invoices.xlsx', sheet_name="Invoice2")
+    invoice3 = pd.read_excel(INPUT_DIR / 'Invoices.xlsx', sheet_name="Invoice3")
     print(po.head())
     print(invoice1.head())
     print(invoice2.head())
