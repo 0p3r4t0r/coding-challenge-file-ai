@@ -1,0 +1,5 @@
+- Dockerize.
+- Ensure SQL scripts are working.
+- Setup Pony ORM.
+- Setup unit tests.
+- Use TDD

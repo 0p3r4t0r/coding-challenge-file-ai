@@ -8,6 +8,14 @@
     the application is built in Python and PostgreSQL.
 
 
+## Quickstart
+
+
+
+
+## Testing
+
+
 
 
 ## Functional Requirements Checklist
@@ -72,6 +80,22 @@ Ingestion -> Aggregation -> Output
     - [ ] Ensure that `Quantity * Unit Price == Total Amount`
 
 
+#### Aggregation
+
+If we were processing massive amounts of data here, it would make more sense
+to do this in SQL and then send the result back to Python, but I think it's
+safe to assume that a single purchase order and its invoices will never
+contain enough data for this to be a concern.
+
+We will fetch the data from the database, and perform the aggregation in
+Python before writing the result out to the file system.
+
+
+#### Output
+
+For the purposes of this project, we will simply output the final excel
+to the file system.
+
 
 
 
@@ -79,31 +103,28 @@ Ingestion -> Aggregation -> Output
 
 Documenting my thought process as I go.
 
+
+- [Docker](https://www.docker.com/): Easily run the application yourselves.
+
+
 - Python dependency management: [uv](https://docs.astral.sh/uv/)
 
-    - I believe [poetry](https://python-poetry.org/) is also a valid choice,
-      however, I find uv more intuitive and it's **much** faster than poetry.
+    - [Poetry](https://python-poetry.org/) is another option.
+      I personally find uv more intuitive and it's also
+      [much faster than poetry](https://github.com/astral-sh/uv/blob/main/BENCHMARKS.md).
 
-    - Especially on machine-learning or AI projects, it's common to swap libraries.
-      New AI models come out every week, and the rapid release pase quickly leads
-      to version conflicts, even in small teams. There's no reason to deal with
-      these issues manually, they exist in every programming language, and that's
-      what package managers are for. It's unfortunate that Python doesn't really
-      force your to use one.
-
-    - Why not just `requirements.txt`? There is no lockfile, and so `requirement.txt`
-      doesn't actually guarantee that your environment is reproducible. Also, uv
-      automatically handles the creation of a [venv](https://docs.python.org/3/library/venv.html)
-
-
-- Docker: Maximize portability for very little additional effort.
+    - Why not just `requirements.txt`? 
+      `requirements.txt` does not enforce version requirements on dependencies 
+      of packages. `uv` explicitly raise errors at install time. Furthermore,
+      `uv` also manages your python version and automatically creates a
+      [venv](https://docs.python.org/3/library/venv.html).
 
 
 - Use [typing](https://docs.python.org/3/library/typing.html)
 
-  - type-hinting and static analysis have come a long way in Python, especially
-    over the last 3 years. I can't say I see people taking advantage of it too
-    often, but it's something I always try to use whenever possible.
+  - Typing has been part of the standard library since 3.5, which was released in 2015.
+    The real world was slow to catch up, but it's not uncommon to see them these days.
+    I try to make a habit of using them whenever I can.
 
 
 - Data Ingestion/Output (Read/Write Excel): [pandas](https://pandas.pydata.org/)
@@ -114,4 +135,35 @@ Documenting my thought process as I go.
       experience with it.
 
     - pandas also comes with capabilities for data validation and normalization.
+
+
+- Database Migrations
+
+  - A popular choice in Python is [Alembic](https://alembic.sqlalchemy.org/en/latest/)
+    which is built on [SQLAlchemy](https://www.sqlalchemy.org/).
+    However, the use of Alembic doesn't necessarily demonstrate nowledge of SQL.
+    For this reason I've opted to write the initialization scripts in pure SQL and use
+    [/docker-entrypoint-initdb.d](https://docs.docker.com/guides/pre-seeding/#pre-seed-the-database-by-bind-mounting-a-sql-script)
+    to ensure the database initialization is run on container startup.
+
+
+- Database Queries: Using an ORM
+
+  - If I'm going to write an entire project for an interview, I've got to at least
+    use the opportunity to try something new.
+
+  - I looked into [Tortoise ORM](https://github.com/tortoise/tortoise-orm?tab=readme-ov-file#introduction)
+    and their benchmarks actually show [Pony ORM](https://github.com/ponyorm/pony) as being the fastest.
+
+  - Pony has two extremely interesting features.
+  
+    - [You can use Python generator expressions for queries](https://docs.ponyorm.org/queries.html).
+      The way Pony achieves this extremely interesting. You can read
+      [this answer by the creator on StackOverflow](https://stackoverflow.com/questions/16115713/how-pony-orm-does-its-tricks)
+      if you would like to learn more about it.
+
+    - It uses the [Identity Map Pattern](https://en.wikipedia.org/wiki/Identity_map_pattern) to cache results.
+  
+  - Finally, I plan to make extensive use of transactions, and
+    [Pony's API makes this very easy](https://ponyorm.readthedocs.io/en/latest/transactions.html)
 
