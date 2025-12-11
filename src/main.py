@@ -1,19 +1,32 @@
+from typing import List
 import pandas as pd
 
 
 ################################################################################
-# Data Ingestion
+# Ingestion
+################################################################################
+def validate_and_normalize_po(po: pd.DataFrame) -> pd.DataFrame:
+    ...
+
+
+def validate_and_normalize_invoice(invoice: pd.DataFrame) -> pd.DataFrame:
+    ...
+
+
+
+################################################################################
+# Analysis
 ################################################################################
 
-def validate_po_data():
+"""
+Should take in any number of invoices and aggregate them.
+"""
+def aggregate_invoices(*invoices: pd.DataFrame) -> pd.DataFrame:
     ...
 
 
-def validate_invoice_data():
-    ...
-
-
-def aggregate_invoices():
+# Use a named tuple for output
+def analyze(po: pd.DataFrame, invoice: pd.DataFrame) -> List[pd.DataFrame]:
     ...
 
 
