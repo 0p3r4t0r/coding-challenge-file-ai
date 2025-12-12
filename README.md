@@ -141,7 +141,7 @@ Documenting my thought process as I go.
 
   - A popular choice in Python is [Alembic](https://alembic.sqlalchemy.org/en/latest/)
     which is built on [SQLAlchemy](https://www.sqlalchemy.org/).
-    However, the use of Alembic doesn't necessarily demonstrate nowledge of SQL.
+    However, the use of Alembic doesn't necessarily demonstrate knowledge of SQL.
     For this reason I've opted to write the initialization scripts in pure SQL and use
     [/docker-entrypoint-initdb.d](https://docs.docker.com/guides/pre-seeding/#pre-seed-the-database-by-bind-mounting-a-sql-script)
     to ensure the database initialization is run on container startup.
@@ -149,21 +149,13 @@ Documenting my thought process as I go.
 
 - Database Queries: Using an ORM
 
-  - If I'm going to write an entire project for an interview, I've got to at least
-    use the opportunity to try something new.
+  - [SQLAlchemy](https://www.sqlalchemy.org/). This is by far the most mature
+    and widely used ORM in Python. I think it's actually the first ORM I ever used.
 
   - I looked into [Tortoise ORM](https://github.com/tortoise/tortoise-orm?tab=readme-ov-file#introduction)
     and their benchmarks actually show [Pony ORM](https://github.com/ponyorm/pony) as being the fastest.
 
-  - Pony has two extremely interesting features.
-  
-    - [You can use Python generator expressions for queries](https://docs.ponyorm.org/queries.html).
-      The way Pony achieves this extremely interesting. You can read
-      [this answer by the creator on StackOverflow](https://stackoverflow.com/questions/16115713/how-pony-orm-does-its-tricks)
-      if you would like to learn more about it.
-
-    - It uses the [Identity Map Pattern](https://en.wikipedia.org/wiki/Identity_map_pattern) to cache results.
-  
-  - Finally, I plan to make extensive use of transactions, and
-    [Pony's API makes this very easy](https://ponyorm.readthedocs.io/en/latest/transactions.html)
+    However, Tortoise is too early-stage as it does not promise a stable API,
+    and Pony is nowhere near production-ready as it lacks basic features and
+    documentation.
 
