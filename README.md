@@ -135,6 +135,7 @@ Documenting my thought process as I go.
       experience with it.
 
     - pandas also comes with capabilities for data validation and normalization.
+      It even auto-detects types in excel!
 
 
 - Database Migrations
