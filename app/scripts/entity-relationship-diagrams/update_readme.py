@@ -1,4 +1,5 @@
 import sys
+import re
 
 
 ER_DIAGRAM_HEADER = "### Entity-Relationship Diagram"
@@ -16,7 +17,12 @@ with open("../README.md", "r") as readme:
         raise Exception(f'README must contain the header {ER_DIAGRAM_HEADER}')
 
     upper, lower = content.split(ER_DIAGRAM_HEADER)
-    updated_content = f'{upper}{ER_DIAGRAM_HEADER}\n\n{mermaid_markdown}{lower}'
+
+    upper = upper.rstrip('\n')
+    lower = re.sub(r"```mermaid.*?```", "", lower, flags=re.DOTALL)
+    lower = lower.lstrip('\n')
+
+    updated_content = f'{upper}\n\n{ER_DIAGRAM_HEADER}\n\n{mermaid_markdown}\n\n\n{lower}'
 
 
 with open("../README.md", "w") as readme:
