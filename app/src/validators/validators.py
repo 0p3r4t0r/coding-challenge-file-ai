@@ -11,13 +11,13 @@ def validate_columns(df: DataFrame, expected: List[str]) -> bool:
     for i in range(len(expected)):
         if expected[i] != actual[i]:
             return False
-    
+
     return True
 
 
 def column_is_constant(column: Series) -> bool:
     """
-    Ensure that the values in a column are all the same. 
+    Ensure that the values in a column are all the same.
     """
     c = column.to_numpy()
     return (c[0] == c).all()

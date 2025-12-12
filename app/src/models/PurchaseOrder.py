@@ -57,7 +57,5 @@ class PurchaseOrderLineItem(Base):
     )
 
     purchase_order = relationship(
-        "PurchaseOrder",
-        back_populates="line_items",
-        passive_deletes=True
+        "PurchaseOrder", back_populates="line_items", passive_deletes=True
     )

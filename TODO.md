@@ -1,4 +1,4 @@
-- Setup Pony ORM.
 - Setup unit tests.
-- Use TDD
 - Consider Indexes for SQL
+- Setup Githooks for black and sql schema diagram
+- https://pypi.org/project/paracelsus/

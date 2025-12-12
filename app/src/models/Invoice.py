@@ -57,9 +57,7 @@ class InvoiceLineItem(Base):
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
     updated_at = Column(TIMESTAMP, server_default=func.current_timestamp())
 
-    __table_args__ = (
-        UniqueConstraint("invoice_id", "item_code"),
-    )
+    __table_args__ = (UniqueConstraint("invoice_id", "item_code"),)
 
     invoice = relationship(
         "Invoice",
