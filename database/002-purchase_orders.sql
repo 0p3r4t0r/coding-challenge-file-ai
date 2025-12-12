@@ -1,6 +1,6 @@
 CREATE TABLE purchase_order (
     id TEXT PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     -- No need for updated_at, as these records will never be updated.
 );
 
@@ -15,8 +15,8 @@ CREATE TABLE purchase_order_line_item (
     unit_price NUMERIC(10, 2) NOT NULL,
     total_price NUMERIC(10, 2) NOT NULL,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
     -- No duplicate lines for a given purchase order.
     UNIQUE(purchase_order_id, purchase_order_line_number),

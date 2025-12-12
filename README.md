@@ -31,6 +31,53 @@
 
 ## Data
 
+### Entity-Relationship Diagram
+
+```mermaid
+erDiagram
+  purchase_order {
+    TEXT id PK
+    TIMESTAMP created_at
+  }
+
+  purchase_order_line_item {
+    INTEGER id PK
+    TEXT purchase_order_id FK
+    TIMESTAMP created_at
+    TEXT description
+    TEXT item_code
+    INTEGER purchase_order_line_number
+    INTEGER quantity
+    Numeric_10_2_ total_price
+    Numeric_10_2_ unit_price
+    TIMESTAMP updated_at
+  }
+
+  invoice {
+    TEXT id PK
+    TEXT purchase_order_id FK "nullable"
+    TIMESTAMP created_at
+  }
+
+  invoice_line_item {
+    INTEGER id PK
+    TEXT invoice_id FK
+    TIMESTAMP created_at
+    TEXT description
+    TEXT item_code
+    INTEGER quantity
+    Numeric_10_2_ total_price
+    Numeric_10_2_ unit_price
+    TIMESTAMP updated_at
+  }
+
+  purchase_order ||--o{ purchase_order_line_item : purchase_order_id
+  purchase_order ||--o{ invoice : purchase_order_id
+  invoice ||--o{ invoice_line_item : invoice_id
+
+```
+
+
 ### Models
 
 - `purchase_orders`
