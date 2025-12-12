@@ -1,3 +1,4 @@
+from .base import Base
 from sqlalchemy import (
     Column,
     Integer,
@@ -8,9 +9,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.orm import declarative_base, relationship
-
-Base = declarative_base()
+from sqlalchemy.orm import relationship
 
 
 class PurchaseOrder(Base):
@@ -19,12 +18,18 @@ class PurchaseOrder(Base):
     id = Column(Text, primary_key=True)
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
 
-    # Relationship: one-to-many
     line_items = relationship(
         "PurchaseOrderLineItem",
         back_populates="purchase_order",
-        cascade="all, delete-orphan",   # ON DELETE CASCADE
-        passive_deletes=True,           # necessary for ON DELETE CASCADE
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    invoices = relationship(
+        "Invoice",
+        back_populates="purchase_order",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 
@@ -33,9 +38,7 @@ class PurchaseOrderLineItem(Base):
 
     id = Column(Integer, primary_key=True)
     purchase_order_id = Column(
-        Text,
-        ForeignKey("purchase_order.id", ondelete="CASCADE"),
-        nullable=False,
+        Text, ForeignKey("purchase_order.id", ondelete="CASCADE"), nullable=False
     )
 
     purchase_order_line_number = Column(Integer, nullable=False)
@@ -43,7 +46,7 @@ class PurchaseOrderLineItem(Base):
     description = Column(Text, nullable=False)
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Numeric(10, 2), nullable=False)
-    total_amount = Column(Numeric(10, 2), nullable=False)
+    total_price = Column(Numeric(10, 2), nullable=False)
 
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
     updated_at = Column(TIMESTAMP, server_default=func.current_timestamp())
@@ -53,4 +56,8 @@ class PurchaseOrderLineItem(Base):
         UniqueConstraint("purchase_order_id", "item_code"),
     )
 
-    purchase_order = relationship("PurchaseOrder", back_populates="line_items")
+    purchase_order = relationship(
+        "PurchaseOrder",
+        back_populates="line_items",
+        passive_deletes=True
+    )

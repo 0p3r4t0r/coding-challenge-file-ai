@@ -13,7 +13,7 @@ CREATE TABLE purchase_order_line_item (
     description TEXT NOT NULL,
     quantity INT NOT NULL,
     unit_price NUMERIC(10, 2) NOT NULL,
-    total_amount NUMERIC(10, 2) NOT NULL,
+    total_price NUMERIC(10, 2) NOT NULL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

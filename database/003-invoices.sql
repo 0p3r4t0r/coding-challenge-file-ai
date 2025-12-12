@@ -1,6 +1,6 @@
 CREATE TABLE invoice (
     id TEXT PRIMARY KEY,
-    purchase_order_id TEXT,
+    purchase_order_id TEXT NOT NULL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     -- No need for updated_at, as these records will never be updated.
@@ -11,13 +11,12 @@ CREATE TABLE invoice (
 
 CREATE TABLE invoice_line_item (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    invoice_id TEXT,
-    purchase_order_line_item_id INT,
-    item_code TEXT, -- item codes may vary across different vendors.
-    description TEXT,
-    quantity INT,
-    unit_price NUMERIC(10, 2),
-    total_amount NUMERIC(10, 2),
+    invoice_id TEXT NOT NULL,
+    item_code TEXT NOT NULL, -- item codes may vary across different vendors.
+    description TEXT NOT NULL,
+    quantity INT NOT NULL,
+    unit_price NUMERIC(10, 2) NOT NULL,
+    total_price NUMERIC(10, 2) NOT NULL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -25,8 +24,7 @@ CREATE TABLE invoice_line_item (
     -- The same item should not be listed on multiple lines in a given invoice.
     UNIQUE(invoice_id, item_code),
 
-    FOREIGN KEY (invoice_id) REFERENCES invoice (id) ON DELETE CASCADE,
-    FOREIGN KEY (purchase_order_line_item_id) REFERENCES purchase_order_line_item (id) ON DELETE CASCADE
+    FOREIGN KEY (invoice_id) REFERENCES invoice (id) ON DELETE CASCADE
 );
 
 -- Add trigger for update_at

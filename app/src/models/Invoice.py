@@ -1,3 +1,6 @@
+from .base import Base
+from .PurchaseOrder import PurchaseOrder, PurchaseOrderLineItem
+
 from sqlalchemy import (
     Column,
     Integer,
@@ -8,9 +11,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.orm import declarative_base, relationship
-
-Base = declarative_base()
+from sqlalchemy.orm import relationship
 
 
 class Invoice(Base):
@@ -19,14 +20,11 @@ class Invoice(Base):
     id = Column(Text, primary_key=True)
 
     purchase_order_id = Column(
-        Text,
-        ForeignKey("purchase_order.id", ondelete="CASCADE"),
-        nullable=True,  # your schema allows nulls
+        Text, ForeignKey("purchase_order.id", ondelete="CASCADE"), nullable=True
     )
 
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
 
-    # Relationships
     line_items = relationship(
         "InvoiceLineItem",
         back_populates="invoice",
@@ -34,7 +32,6 @@ class Invoice(Base):
         passive_deletes=True,
     )
 
-    # Optional: Relationship to PurchaseOrder object
     purchase_order = relationship(
         "PurchaseOrder",
         back_populates="invoices",
@@ -48,26 +45,24 @@ class InvoiceLineItem(Base):
     id = Column(Integer, primary_key=True)
 
     invoice_id = Column(
-        Text,
-        ForeignKey("invoice.id", ondelete="CASCADE"),
-        nullable=True,
+        Text, ForeignKey("invoice.id", ondelete="CASCADE"), nullable=False
     )
 
-    purchase_order_line_item_id = Column(
-        Integer,
-        ForeignKey("purchase_order_line_item.id", ondelete="CASCADE"),
-        nullable=True,
-    )
-
-    item_code = Column(Text, nullable=True)
-    description = Column(Text, nullable=True)
-    quantity = Column(Integer, nullable=True)
-    unit_price = Column(Numeric(10, 2), nullable=True)
-    total_amount = Column(Numeric(10, 2), nullable=True)
+    item_code = Column(Text, nullable=False)
+    description = Column(Text, nullable=False)
+    quantity = Column(Integer, nullable=False)
+    unit_price = Column(Numeric(10, 2), nullable=False)
+    total_price = Column(Numeric(10, 2), nullable=False)
 
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
     updated_at = Column(TIMESTAMP, server_default=func.current_timestamp())
 
     __table_args__ = (
         UniqueConstraint("invoice_id", "item_code"),
+    )
+
+    invoice = relationship(
+        "Invoice",
+        back_populates="line_items",
+        passive_deletes=True,
     )

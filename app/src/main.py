@@ -1,4 +1,4 @@
-from models import PurchaseOrder, PurchaseOrderLineItem
+from models import Invoice, InvoiceLineItem, PurchaseOrder, PurchaseOrderLineItem
 import validators
 
 from collections import namedtuple
@@ -21,10 +21,7 @@ INVOICE_COLUMNS = ['Invoice Number', 'PO Number', 'Item Code', 'Description', 'I
 # DB Connection
 ################################################################################
 # TODO: use .env to set this url.
-engine = create_engine('postgresql+psycopg://postgres:password@localhost:5432/database')
-with Session(engine) as session:
-    purchase_orders = session.query(PurchaseOrder).all()
-    print(purchase_orders)
+engine = create_engine('postgresql+psycopg://po_postgres:po_postgres@localhost:5432/po_database')
 
 
 ################################################################################
@@ -49,14 +46,6 @@ def log_excel_file_event(event: str, file: Path, sheet_name: str) -> str:
 
 
 ################################################################################
-# Ingestion
-################################################################################
-def validate_and_normalize_invoice(invoice: pd.DataFrame) -> pd.DataFrame:
-    ...
-
-
-
-################################################################################
 # Analysis
 ################################################################################
 
@@ -73,6 +62,7 @@ def analyze(po: pd.DataFrame, invoice: pd.DataFrame) -> List[pd.DataFrame]:
 
 
 def main():
+    # TODO: refactor to require 1 invoice per file.
     for file in INPUT_DIR.iterdir():
         sheets: Dict[str, pd.DataFrame] = pd.read_excel(file, sheet_name=None)
         for sheet_name, df in sheets.items():
@@ -84,13 +74,31 @@ def main():
                 validators.validate_columns(df, PURCHASE_ORDER_COLUMNS)
                 and validators.column_is_constant(df['PO Number'])
                 and df['PO Line'].is_unique
+                # TODO: Validate that PO Line goes like 1, 2, 3, 4.... in order and no values skipped
                 and df['Item Code'].is_unique
                 and validators.column_is_integer(df['Ordered Qty'])
                 and validators.column_has_at_most_two_decimal_places(df['Unit Price'])
                 and validators.column_has_at_most_two_decimal_places(df['Total Amount'])
                 and (df['Ordered Qty'] * df['Unit Price'] == df['Total Amount']).all()
             ):
-                log_excel_file_event('Processing Purchase Order', file, sheet_name)
+                log_excel_file_event('Ingesting Purchase Order', file, sheet_name)
+                with Session(engine) as session:
+                    purchase_order = PurchaseOrder(id=df['PO Number'].iat[0])
+                    session.add(purchase_order)
+
+                    for _, row in df.iterrows():
+                        line_item = PurchaseOrderLineItem(
+                            purchase_order_id = purchase_order.id,
+                            purchase_order_line_number = row['PO Line'],
+                            item_code = row['Item Code'],
+                            description = row['Description'],
+                            quantity = row['Ordered Qty'],
+                            unit_price = row['Unit Price'],
+                            total_price = row['Total Amount'],
+                        )
+                        session.add(line_item)
+                    session.commit()
+                log_excel_file_event('Ingested Purchase Order', file, sheet_name)
                 ...
             elif (
                 validators.validate_columns(df, INVOICE_COLUMNS)
@@ -102,7 +110,31 @@ def main():
                 and validators.column_has_at_most_two_decimal_places(df['Total Amount'])
                 and (df['Invoiced Qty'] * df['Unit Price'] == df['Total Amount']).all()
             ):
-                log_excel_file_event('Processing Invoice', file, sheet_name)
+                log_excel_file_event('Ingesting Invoice', file, sheet_name)
+                with Session(engine) as session:
+                    purchase_order_id = df['PO Number'].iat[0]
+                    purchase_order = session.get(PurchaseOrder, purchase_order_id)
+                    if not purchase_order:
+                        raise Exception('No purchase order')
+
+                    invoice = Invoice(
+                        id=df['Invoice Number'].iat[0],
+                        purchase_order_id = purchase_order.id,
+                    )
+                    session.add(invoice)
+
+                    for _, row in df.iterrows():
+                        line_item = InvoiceLineItem(
+                            invoice_id = invoice.id,
+                            item_code = row['Item Code'],
+                            description = row['Description'],
+                            quantity = row['Invoiced Qty'],
+                            unit_price = row['Unit Price'],
+                            total_price = row['Total Amount'],
+                        )
+                        session.add(line_item)
+                    session.commit()
+                log_excel_file_event('Ingested Invoice', file, sheet_name)
                 ...
             else:
                 log_excel_file_event('Unsupported Format', file, sheet_name)

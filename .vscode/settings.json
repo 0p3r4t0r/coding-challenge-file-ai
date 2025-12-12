@@ -2,6 +2,7 @@
     "cSpell.words": [
         "initdb",
         "ondelete",
-        "openpyxl"
+        "openpyxl",
+        "selectinload"
     ]
 }
