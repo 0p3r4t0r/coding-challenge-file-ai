@@ -23,7 +23,9 @@ class Invoice(Base):
         Text, ForeignKey("purchase_order.id", ondelete="CASCADE"), nullable=True
     )
 
-    created_at = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=False)
+    created_at = Column(
+        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+    )
 
     line_items = relationship(
         "InvoiceLineItem",
@@ -54,8 +56,12 @@ class InvoiceLineItem(Base):
     unit_price = Column(Numeric(10, 2), nullable=False)
     total_price = Column(Numeric(10, 2), nullable=False)
 
-    created_at = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=False)
-    updated_at = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=False)
+    created_at = Column(
+        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+    )
+    updated_at = Column(
+        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+    )
 
     __table_args__ = (UniqueConstraint("invoice_id", "item_code"),)
 

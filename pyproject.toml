@@ -1,0 +1,14 @@
+[project]
+name = "coding-challenge-file-ai"
+version = "0.1.0"
+description = "Dependencies for running things like formatter and pre-commit hooks."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "black>=25.12.0",
+    "paracelsus>=0.13.2",
+    "pre-commit>=4.5.0",
+]

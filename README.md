@@ -10,7 +10,11 @@
 
 ## Quickstart
 
-
+1. [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
+2. `uv sync` to update dependencies.
+3. `uv run pre-commit install` to install pre-commit hooks.
+4. `docker-compose up` to initialize database and run the code.
+5. `uv run app/src/main.py` 
 
 
 ## Testing
@@ -32,6 +36,12 @@
 ## Data
 
 ### Entity-Relationship Diagram
+
+This diagram is auto-generated on commit by [update_readme.py](./app/scripts/entity-relationship-diagrams/update_readme.py)
+using [paracelsus](https://github.com/tedivm/paracelsus).
+
+DO NOT EDIT IT MANUALLY
+
 
 ```mermaid
 erDiagram
@@ -149,6 +159,10 @@ to the file system.
 ## Tech Stack and Library Choices
 
 Documenting my thought process as I go.
+
+- Quality of Life: choices that automate tasks during development.
+  - [pre-commit](https://pre-commit.com/) to manage git hooks.
+  - [Black](https://github.com/psf/black) to format code.
 
 
 - [Docker](https://www.docker.com/): Easily run the application yourselves.

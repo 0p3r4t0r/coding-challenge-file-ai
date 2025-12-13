@@ -16,7 +16,9 @@ class PurchaseOrder(Base):
     __tablename__ = "purchase_order"
 
     id = Column(Text, primary_key=True)
-    created_at = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=False)
+    created_at = Column(
+        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+    )
 
     line_items = relationship(
         "PurchaseOrderLineItem",
@@ -48,8 +50,12 @@ class PurchaseOrderLineItem(Base):
     unit_price = Column(Numeric(10, 2), nullable=False)
     total_price = Column(Numeric(10, 2), nullable=False)
 
-    created_at = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=False)
-    updated_at = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=False)
+    created_at = Column(
+        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+    )
+    updated_at = Column(
+        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+    )
 
     __table_args__ = (
         UniqueConstraint("purchase_order_id", "purchase_order_line_number"),
