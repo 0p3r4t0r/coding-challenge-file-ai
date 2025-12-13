@@ -7,7 +7,6 @@ import pandas as pd
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from typing import Dict, List
 
 APP_DIR = Path(__file__).resolve().parent.parent
 FILES_DIR = APP_DIR / "files"
@@ -59,35 +58,43 @@ def logger(message: str):
     print(message)
 
 
-def log_excel_file_event(event: str, file: Path, sheet_name: str) -> str:
-    message = f"[[Excel File: {event}]] file: {file.name} sheet: {sheet_name}"
+def log_excel_file_event(event: str, file: Path) -> str:
+    message = f"[[Excel Event: {event}]] First sheet of file: {file.name}"
     logger(message)
 
 
 ################################################################################
-# Logging
+# Main
 ################################################################################
-def main():
-    # TODO: refactor to require 1 invoice per file.
-    for file in INPUT_DIR.iterdir():
-        sheets: Dict[str, pd.DataFrame] = pd.read_excel(file, sheet_name=None)
-        for sheet_name, df in sheets.items():
-            if df.empty:
-                log_excel_file_event("Empty Sheet", file, sheet_name)
-                continue
+sorted_filenames = sorted(
+    INPUT_DIR.iterdir(), key=lambda x: 0 if x.name.startswith("PurchaseOrder") else 1
+)
 
-            if (
-                validators.validate_columns(df, PURCHASE_ORDER_COLUMNS)
-                and validators.column_is_constant(df["PO Number"])
-                and df["PO Line"].is_unique
-                # TODO: Validate that PO Line goes like 1, 2, 3, 4.... in order and no values skipped
-                and df["Item Code"].is_unique
-                and validators.column_is_integer(df["Ordered Qty"])
-                and validators.column_has_at_most_two_decimal_places(df["Unit Price"])
-                and validators.column_has_at_most_two_decimal_places(df["Total Amount"])
-                and (df["Ordered Qty"] * df["Unit Price"] == df["Total Amount"]).all()
-            ):
-                log_excel_file_event("Ingesting Purchase Order", file, sheet_name)
+
+def main():
+    for file in sorted_filenames:
+        df = pd.read_excel(file, sheet_name=0)
+        if df.empty:
+            log_excel_file_event("No data", file)
+            continue
+
+        if not validators.validate_file_name(file):
+            logger(
+                f'File name does not start with "PurchaseOrder" or "Invoice": {file.name}'
+            )
+
+        if (
+            validators.validate_columns(df, PURCHASE_ORDER_COLUMNS)
+            and validators.column_is_constant(df["PO Number"])
+            and validators.column_po_line(df["PO Line"])
+            and df["Item Code"].is_unique
+            and validators.column_is_integer(df["Ordered Qty"])
+            and validators.column_has_at_most_two_decimal_places(df["Unit Price"])
+            and validators.column_has_at_most_two_decimal_places(df["Total Amount"])
+            and (df["Ordered Qty"] * df["Unit Price"] == df["Total Amount"]).all()
+        ):
+            log_excel_file_event("Ingesting Purchase Order", file)
+            try:
                 with Session(engine) as session:
                     purchase_order = PurchaseOrder(id=df["PO Number"].iat[0])
                     session.add(purchase_order)
@@ -104,19 +111,24 @@ def main():
                         )
                         session.add(line_item)
                     session.commit()
-                log_excel_file_event("Ingested Purchase Order", file, sheet_name)
-                ...
-            elif (
-                validators.validate_columns(df, INVOICE_COLUMNS)
-                and validators.column_is_constant(df["Invoice Number"])
-                and validators.column_is_constant(df["PO Number"])
-                and df["Item Code"].is_unique
-                and validators.column_is_integer(df["Invoiced Qty"])
-                and validators.column_has_at_most_two_decimal_places(df["Unit Price"])
-                and validators.column_has_at_most_two_decimal_places(df["Total Amount"])
-                and (df["Invoiced Qty"] * df["Unit Price"] == df["Total Amount"]).all()
-            ):
-                log_excel_file_event("Ingesting Invoice", file, sheet_name)
+            except Exception as e:
+                log_excel_file_event("Failed to Ingest Purchase Order", file)
+                logger(e)
+
+            log_excel_file_event("Ingested Purchase Order", file)
+            ...
+        elif (
+            validators.validate_columns(df, INVOICE_COLUMNS)
+            and validators.column_is_constant(df["Invoice Number"])
+            and validators.column_is_constant(df["PO Number"])
+            and df["Item Code"].is_unique
+            and validators.column_is_integer(df["Invoiced Qty"])
+            and validators.column_has_at_most_two_decimal_places(df["Unit Price"])
+            and validators.column_has_at_most_two_decimal_places(df["Total Amount"])
+            and (df["Invoiced Qty"] * df["Unit Price"] == df["Total Amount"]).all()
+        ):
+            log_excel_file_event("Ingesting Invoice", file)
+            try:
                 with Session(engine) as session:
                     purchase_order_id = df["PO Number"].iat[0]
                     purchase_order = session.get(PurchaseOrder, purchase_order_id)
@@ -140,10 +152,14 @@ def main():
                         )
                         session.add(line_item)
                     session.commit()
-                log_excel_file_event("Ingested Invoice", file, sheet_name)
-                ...
-            else:
-                log_excel_file_event("Unsupported Format", file, sheet_name)
+            except Exception as e:
+                log_excel_file_event("Failed to Ingest Invoice", file)
+                logger(e)
+
+            log_excel_file_event("Ingested Invoice", file)
+            ...
+        else:
+            log_excel_file_event("Unsupported Format", file)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,5 @@
-- Once excel per file
 - Setup unit tests that run on pre-commit
+- Generate output
+- Cleanup code
 - Consider indexes for SQL
+- Clean up documentation
