@@ -27,8 +27,8 @@
 - [x] System must read two Excel files.
   - [x] PO.xlsx
   - [x] Invoices.xlsx
-- [ ] Validate column headers
-- [ ] Normalize data types (numbers, text)
+- [x] Validate column headers -- [app/src/validators](app/src/validators/)
+- [x] Normalize data types (numbers, text) -- pandas does this automatically
 
 
 

@@ -1,4 +1,3 @@
-- Setup unit tests.
-- Consider Indexes for SQL
-- Setup Githooks for black and sql schema diagram
-- https://pypi.org/project/paracelsus/
+- Once excel per file
+- Setup unit tests that run on pre-commit
+- Consider indexes for SQL

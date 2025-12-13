@@ -6,9 +6,9 @@ services:
     container_name: po_postgres
     restart: always
     environment:
-      POSTGRES_USER: po_postgres
-      POSTGRES_PASSWORD: po_postgres
-      POSTGRES_DB: po_database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: database
     ports:
       - "5432:5432"
     volumes:
@@ -24,7 +24,10 @@ services:
     depends_on:
       - database
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/po_db
+      POSTGRES_HOST: database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: database
     # Optional: auto-reload during development
     # command: ["uv", "run", "--watch", "main.py"]
     volumes:

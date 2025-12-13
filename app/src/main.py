@@ -1,7 +1,8 @@
 from models import Invoice, InvoiceLineItem, PurchaseOrder, PurchaseOrderLineItem
 import validators
 
-from collections import namedtuple
+from dotenv import load_dotenv
+from os import environ
 import pandas as pd
 from pathlib import Path
 from sqlalchemy import create_engine
@@ -36,9 +37,9 @@ INVOICE_COLUMNS = [
 ################################################################################
 # DB Connection
 ################################################################################
-# TODO: use .env to set this url.
+load_dotenv()
 engine = create_engine(
-    "postgresql+psycopg://po_postgres:po_postgres@localhost:5432/po_database"
+    f"postgresql+psycopg://{environ.get('POSTGRES_USER')}:{environ.get('POSTGRES_PASSWORD')}@{environ.get('POSTGRES_HOST')}:5432/{environ.get('POSTGRES_DB')}"
 )
 
 
@@ -64,21 +65,8 @@ def log_excel_file_event(event: str, file: Path, sheet_name: str) -> str:
 
 
 ################################################################################
-# Analysis
+# Logging
 ################################################################################
-
-"""
-Should take in any number of invoices and aggregate them.
-"""
-
-
-def aggregate_invoices(*invoices: pd.DataFrame) -> pd.DataFrame: ...
-
-
-# Use a named tuple for output
-def analyze(po: pd.DataFrame, invoice: pd.DataFrame) -> List[pd.DataFrame]: ...
-
-
 def main():
     # TODO: refactor to require 1 invoice per file.
     for file in INPUT_DIR.iterdir():
