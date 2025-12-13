@@ -3,3 +3,7 @@
 - Cleanup code
 - Consider indexes for SQL
 - Clean up documentation
+
+Bonus
+- Auditing with file hashes
+- Try out AWS Infrastructure Composer
