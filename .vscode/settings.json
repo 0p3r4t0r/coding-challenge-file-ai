@@ -4,6 +4,7 @@
         "initdb",
         "ondelete",
         "openpyxl",
+        "popleft",
         "selectinload"
     ]
 }

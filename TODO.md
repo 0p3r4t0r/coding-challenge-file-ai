@@ -1,7 +1,20 @@
-- Setup unit tests that run on pre-commit
 - Generate output
+    - Write out to excel
+    - Write out to database
+    - Create a report_audit table
+      - Timestamp
+      - File hash
+      - File name
+      - Where the output is stored
+      - One-to-many: PO -> report
+      - Many-to-many: invoice <-> report
+    - Confirm Definition of Total Variance and Count of mismatches
+      - Do we exclude items not in the PO from total variance?
+- Setup unit tests that run on pre-commit
 - Cleanup code
 - Consider indexes for SQL
+- Add constraints to POSTGRES
+- Validate that unit_price on purchase order matches the invoice.
 - Clean up documentation
 
 Bonus

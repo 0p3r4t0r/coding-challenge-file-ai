@@ -1,12 +1,17 @@
 from models import Invoice, InvoiceLineItem, PurchaseOrder, PurchaseOrderLineItem
 import validators
 
+from collections import deque
+from decimal import Decimal
 from dotenv import load_dotenv
 from os import environ
+from numpy import nan
 import pandas as pd
 from pathlib import Path
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import Session
+from typing import Union
+
 
 APP_DIR = Path(__file__).resolve().parent.parent
 FILES_DIR = APP_DIR / "files"
@@ -64,6 +69,20 @@ def log_excel_file_event(event: str, file: Path) -> str:
 
 
 ################################################################################
+# Utils
+################################################################################
+def classify_variance(x: Union[int, nan]) -> str:
+    if pd.isna(x):
+        return "Item not in PO"
+    elif x < 0:
+        return "Under-Invoiced"
+    elif x > 0:
+        return "Over-Invoiced"
+    else:
+        return "Fully Matched"
+
+
+################################################################################
 # Main
 ################################################################################
 sorted_filenames = sorted(
@@ -72,6 +91,81 @@ sorted_filenames = sorted(
 
 
 def main():
+    q = deque()
+    s = set()
+
+    q.append("PO-1001")
+    s.add("PO-1001")
+
+    while q:
+        purchase_order_id = q.popleft()
+        s.remove(purchase_order_id)
+
+        with Session(engine) as session:
+            grouped_invoice_items_subq = (
+                session.query(
+                    InvoiceLineItem.item_code.label("invoice_item_code"),
+                    func.sum(InvoiceLineItem.quantity).label("invoice_quantity"),
+                    func.sum(InvoiceLineItem.total_price).label("invoice_total_price"),
+                )
+                .join(Invoice)
+                .filter(Invoice.purchase_order_id == purchase_order_id)
+                .group_by(InvoiceLineItem.item_code, InvoiceLineItem.description)
+                .subquery()
+            )
+
+            report_data = (
+                session.query(
+                    func.coalesce(
+                        PurchaseOrderLineItem.purchase_order_id, purchase_order_id
+                    ).label("purchase_order_id"),
+                    func.coalesce(
+                        PurchaseOrderLineItem.item_code,
+                        grouped_invoice_items_subq.c.invoice_item_code,
+                    ).label("item_code"),
+                    PurchaseOrderLineItem.quantity.label("po_quantity"),
+                    grouped_invoice_items_subq.c.invoice_quantity.label(
+                        "invoice_quantity"
+                    ),
+                    PurchaseOrderLineItem.total_price.label("po_total_price"),
+                    grouped_invoice_items_subq.c.invoice_total_price.label(
+                        "invoice_total_price"
+                    ),
+                )
+                .join(
+                    grouped_invoice_items_subq,
+                    PurchaseOrderLineItem.item_code
+                    == grouped_invoice_items_subq.c.invoice_item_code,
+                    full=True,
+                )
+                .all()
+            )
+
+            report_columns = [
+                "PO Number",
+                "Item Code",
+                "Ordered Qty",
+                "Invoiced Qty",
+                "Ordered Price",
+                "Invoiced Price",
+            ]
+            df = pd.DataFrame(report_data, columns=report_columns)
+            df.insert(4, "Qty Variance", df["Invoiced Qty"] - df["Ordered Qty"])
+            df.insert(7, "Price Variance", df["Invoiced Price"] - df["Ordered Price"])
+            df.insert(
+                8, "Status / Comments", df["Qty Variance"].apply(classify_variance)
+            )
+
+            print(df)
+            ordered_price_total = df["Ordered Price"].sum()
+            invoiced_price_total = df["Invoiced Price"].sum()
+            total_variance = invoiced_price_total - ordered_price_total
+            mismatch_count = (df["Ordered Qty"] != df["Invoiced Qty"]).sum()
+            print(
+                f"Ordered Price: {ordered_price_total}, Invoiced Price: {invoiced_price_total}, Total Variance: {total_variance}, Mismatch Count: {mismatch_count}"
+            )
+
+    return
     for file in sorted_filenames:
         df = pd.read_excel(file, sheet_name=0)
         if df.empty:
