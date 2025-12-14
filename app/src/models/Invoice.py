@@ -1,5 +1,4 @@
 from .base import Base
-from .PurchaseOrder import PurchaseOrder, PurchaseOrderLineItem
 
 from sqlalchemy import (
     Column,
