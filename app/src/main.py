@@ -3,11 +3,13 @@ import validators
 
 from collections import deque
 from dotenv import load_dotenv
+import logging
 from os import environ
 import pandas as pd
 from pathlib import Path
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import Session
+import sys
 
 import reports
 
@@ -37,33 +39,27 @@ INVOICE_COLUMNS = [
 
 
 ################################################################################
+# Logging
+################################################################################
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+
+
+def log_excel_file_event(event: str, file: Path) -> str:
+    message = f"[[Excel Event: {event}]] First sheet of file: {file.name}"
+    logging.info(message)
+
+
+################################################################################
 # DB Connection
 ################################################################################
 load_dotenv()
 engine = create_engine(
     f"postgresql+psycopg://{environ.get('POSTGRES_USER')}:{environ.get('POSTGRES_PASSWORD')}@{environ.get('POSTGRES_HOST')}:5432/{environ.get('POSTGRES_DB')}"
 )
-
-
-################################################################################
-# Logging
-################################################################################
-def logger(message: str):
-    """
-    Placeholder function for logging.
-
-    During local development, you'll want to print to console.
-    On a server you may want to log to a file, or an external system.
-
-    This can be easily accomplished simply by changing the contents of this
-    function.
-    """
-    print(message)
-
-
-def log_excel_file_event(event: str, file: Path) -> str:
-    message = f"[[Excel Event: {event}]] First sheet of file: {file.name}"
-    logger(message)
 
 
 ################################################################################
@@ -85,7 +81,7 @@ def main():
             continue
 
         if not validators.validate_file_name(file):
-            logger(
+            logging.info(
                 f'File name does not start with "PurchaseOrder" or "Invoice": {file.name}'
             )
 
@@ -122,7 +118,7 @@ def main():
                     s.add(purchase_order.id)
             except Exception as e:
                 log_excel_file_event("Failed to Ingest Purchase Order", file)
-                logger(e)
+                logging.error(e)
 
             log_excel_file_event("Ingested Purchase Order", file)
             ...
@@ -137,7 +133,6 @@ def main():
             and (df["Invoiced Qty"] * df["Unit Price"] == df["Total Amount"]).all()
         ):
             log_excel_file_event("Ingesting Invoice", file)
-            ## TODO: fix misleading error message
             try:
                 with Session(engine) as session:
                     purchase_order_id = df["PO Number"].iat[0]
@@ -162,15 +157,14 @@ def main():
                         )
                         session.add(line_item)
                     session.commit()
+                    log_excel_file_event("Ingested Invoice", file)
+
                     if purchase_order.id not in s:
                         q.append(purchase_order.id)
                     s.add(purchase_order.id)
             except Exception as e:
                 log_excel_file_event("Failed to Ingest Invoice", file)
-                logger(e)
-
-            log_excel_file_event("Ingested Invoice", file)
-            ...
+                logging.error(e)
         else:
             log_excel_file_event("Unsupported Format", file)
 

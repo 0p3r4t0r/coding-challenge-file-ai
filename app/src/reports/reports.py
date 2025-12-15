@@ -1,11 +1,14 @@
 from models import PurchaseOrderLineItem, Invoice, InvoiceLineItem
 from numpy import nan
 import pandas as pd
-from sqlalchemy import exists, func
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import NamedTuple, Union
 
 
+################################################################################
+# Return Types
+################################################################################
 class SummaryAndReconciliationReport(NamedTuple):
     summary: pd.DataFrame
     reconciliation_report: pd.DataFrame
@@ -27,6 +30,9 @@ def classify_variance(x: Union[int, nan]) -> str:
         return "Fully Matched"
 
 
+################################################################################
+# Functions
+################################################################################
 def summary_and_reconciliation(
     session: Session, purchase_order_id: str
 ) -> SummaryAndReconciliationReport:
@@ -161,7 +167,6 @@ def purchase_order_lines_without_invoice(
     return pd.read_sql(query.statement, session.bind)
 
 
-# Edit this to just get the line items.
 def raw_data(session: Session, purchase_order_id: str) -> RawData:
     # --- PO Lines ---
     po_query = session.query(
@@ -193,5 +198,4 @@ def raw_data(session: Session, purchase_order_id: str) -> RawData:
 
     invoice_lines_df = pd.read_sql(invoice_query.statement, session.bind)
 
-    # Return as NamedTuple
     return RawData(po_lines_df, invoice_lines_df)
