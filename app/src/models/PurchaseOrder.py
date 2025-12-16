@@ -34,6 +34,13 @@ class PurchaseOrder(Base):
         passive_deletes=True,
     )
 
+    reports = relationship(
+        "Report",
+        back_populates="purchase_order",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
 
 class PurchaseOrderLineItem(Base):
     __tablename__ = "purchase_order_line_item"

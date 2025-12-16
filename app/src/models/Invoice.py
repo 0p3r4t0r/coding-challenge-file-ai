@@ -26,6 +26,12 @@ class Invoice(Base):
         TIMESTAMP, server_default=func.current_timestamp(), nullable=False
     )
 
+    purchase_order = relationship(
+        "PurchaseOrder",
+        back_populates="invoices",
+        passive_deletes=True,
+    )
+
     line_items = relationship(
         "InvoiceLineItem",
         back_populates="invoice",
@@ -33,8 +39,9 @@ class Invoice(Base):
         passive_deletes=True,
     )
 
-    purchase_order = relationship(
-        "PurchaseOrder",
+    reports = relationship(
+        "Report",
+        secondary="report_invoice",
         back_populates="invoices",
         passive_deletes=True,
     )

@@ -6,3 +6,8 @@ repos:
         entry: uv run black app/
         language: system
         types: [python]
+      - id: update-readme-er-diagram
+        name: Update README ER Diagram
+        entry: bash scripts/entity-relationship-diagrams/update_diagram.sh
+        language: system
+        files: ^app/src/models/.*\.py$
