@@ -2,6 +2,7 @@ from models import Invoice, InvoiceLineItem, PurchaseOrder, PurchaseOrderLineIte
 import validators
 
 from collections import deque
+from datetime import datetime
 from dotenv import load_dotenv
 import logging
 from os import environ
@@ -63,6 +64,13 @@ engine = create_engine(
 
 
 ################################################################################
+# Utils
+################################################################################
+def ingest_file(file: Path):
+    file.rename(OUTPUT_DIR / "ingested" / file.name)
+
+
+################################################################################
 # Main
 ################################################################################
 sorted_filenames = sorted(
@@ -112,6 +120,8 @@ def main():
                             total_price=row["Total Amount"],
                         )
                         session.add(line_item)
+
+                    ingest_file(file)
                     session.commit()
                     if purchase_order.id not in report_purchase_order_ids_set:
                         report_purchase_order_ids_queue.append(purchase_order.id)
@@ -156,6 +166,8 @@ def main():
                             total_price=row["Total Amount"],
                         )
                         session.add(line_item)
+
+                    ingest_file(file)
                     session.commit()
                     log_excel_file_event("Ingested Invoice", file)
 
@@ -173,6 +185,14 @@ def main():
         report_purchase_order_ids_set.remove(purchase_order_id)
 
         with Session(engine) as session:
+            session.connection(
+                execution_options={"isolation_level": "REPEATABLE READ"},
+            )
+
+            now = datetime.now()
+            current_timestamp = now.strftime("%Y%m%d_%H%M%S")
+            filename = f"report_{purchase_order_id}_{current_timestamp}.xlsx"
+
             summary, reconciliation_report = reports.summary_and_reconciliation(
                 session, purchase_order_id
             )
@@ -185,7 +205,10 @@ def main():
             purchase_order_lines, invoice_lines = reports.raw_data(
                 session, purchase_order_id
             )
-            with pd.ExcelWriter("output.xlsx", engine="xlsxwriter") as writer:
+
+            with pd.ExcelWriter(
+                OUTPUT_DIR / "reports" / filename, engine="xlsxwriter"
+            ) as writer:
                 summary.to_excel(writer, sheet_name="Summary", index=False, na_rep="--")
                 reconciliation_report.to_excel(
                     writer, sheet_name="Reconciliation Report", index=False, na_rep="--"
@@ -213,6 +236,8 @@ def main():
                     worksheet.set_column(0, worksheet.dim_colmax, 20)
 
             reports.create_report_db_records(session, purchase_order_id)
+
+            session.commit()
 
 
 if __name__ == "__main__":

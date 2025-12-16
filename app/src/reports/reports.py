@@ -169,15 +169,19 @@ def purchase_order_lines_without_invoice(
 
 def raw_data(session: Session, purchase_order_id: str) -> RawData:
     # --- PO Lines ---
-    po_query = session.query(
-        PurchaseOrderLineItem.purchase_order_id.label("PO Number"),
-        PurchaseOrderLineItem.purchase_order_line_number.label("PO Line"),
-        PurchaseOrderLineItem.item_code.label("Item Code"),
-        PurchaseOrderLineItem.description.label("Description"),
-        PurchaseOrderLineItem.quantity.label("Ordered Qty"),
-        PurchaseOrderLineItem.unit_price.label("Unit Price"),
-        PurchaseOrderLineItem.total_price.label("Total Price"),
-    ).filter(PurchaseOrderLineItem.purchase_order_id == purchase_order_id)
+    po_query = (
+        session.query(
+            PurchaseOrderLineItem.purchase_order_id.label("PO Number"),
+            PurchaseOrderLineItem.purchase_order_line_number.label("PO Line"),
+            PurchaseOrderLineItem.item_code.label("Item Code"),
+            PurchaseOrderLineItem.description.label("Description"),
+            PurchaseOrderLineItem.quantity.label("Ordered Qty"),
+            PurchaseOrderLineItem.unit_price.label("Unit Price"),
+            PurchaseOrderLineItem.total_price.label("Total Price"),
+        )
+        .filter(PurchaseOrderLineItem.purchase_order_id == purchase_order_id)
+        .order_by(PurchaseOrderLineItem.purchase_order_line_number.asc())
+    )
 
     po_lines_df = pd.read_sql(po_query.statement, session.bind)
 
@@ -194,6 +198,7 @@ def raw_data(session: Session, purchase_order_id: str) -> RawData:
         )
         .join(InvoiceLineItem, Invoice.id == InvoiceLineItem.invoice_id)
         .filter(Invoice.purchase_order_id == purchase_order_id)
+        .order_by(Invoice.id.asc())
     )
 
     invoice_lines_df = pd.read_sql(invoice_query.statement, session.bind)
@@ -220,5 +225,3 @@ def create_report_db_records(
     )
 
     report.invoices.extend(invoices)
-
-    session.commit()
