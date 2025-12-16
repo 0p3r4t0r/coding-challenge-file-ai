@@ -1,23 +1,9 @@
-from pandas import DataFrame, Series
+from pandas import Series
 from pathlib import Path
-from typing import List
 
 
 def validate_file_name(file: Path) -> bool:
     return file.name.startswith("PurchaseOrder") or file.name.startswith("Invoice")
-
-
-def validate_columns(df: DataFrame, expected: List[str]) -> bool:
-    actual = df.columns.to_list()
-
-    if len(actual) != len(expected):
-        return False
-
-    for i in range(len(expected)):
-        if expected[i] != actual[i]:
-            return False
-
-    return True
 
 
 def column_po_line(column: Series) -> bool:

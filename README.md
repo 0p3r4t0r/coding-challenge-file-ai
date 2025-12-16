@@ -18,6 +18,7 @@
 
 
 ## Testing
+TODO
 
 
 
@@ -104,11 +105,6 @@ erDiagram
 
 ### Models
 
-- `purchase_orders`
-  - `purchase_order_lines` -- many-to-one --> `purchase_orders`
-- `invoices`
-  - `invoice_lines` -- many-to-one --> `invoices`
-
 ⚠️ We do not normalize items into their own table.
 The price of an item could change over time, and thus across purchase orders,
 so we want to track them in-line.
@@ -116,12 +112,12 @@ so we want to track them in-line.
 We *do* want to ensure that item prices are consistent throughout a purchase
 order and all invoices and in order to do so we require the following...
 
-- An item may only be listed *once* on a given purchase order.
+- [x] An item may only be listed *once* on a given purchase order.
 
-- An item may only be listed *once* on a given invoice: there is no
+- [x] An item may only be listed *once* on a given invoice: there is no
   problem with an item appearing multiple times across several invoices. 
 
-- The purchase order sets the unit price of an item, any discrepancies found
+- [ ] The purchase order sets the unit price of an item, any discrepancies found
   thereafter in an invoice will be treated as an error.
 
 
@@ -129,13 +125,22 @@ order and all invoices and in order to do so we require the following...
 
 ### Data Flow
 
-Ingestion -> Aggregation -> Output
+```mermaid
+flowchart LR
+    Identification --> Validation --> Ingestion --> Analysis --> Report
+```
 
-#### Ingestion
+
+#### Identification
+
+Relies solely on the columns in the excel sheet.
+
+#### Validation
 
 * Each ingestion operation is wrapped in a transaction to ensure atomicity.
 
 1. Validate and Import purchase order.
+  TODO: Go through this checklist in detail
   - [ ] Ensure `PO Number` is consistent across all rows for a give PO.
   - [ ] Create `purchase_orders` record.
   - [ ] Create `purchase_order_lines` record for each line.
@@ -151,21 +156,33 @@ Ingestion -> Aggregation -> Output
     - [ ] Ensure that `Quantity * Unit Price == Total Amount`
 
 
-#### Aggregation
+### Ingestion
+
+Files are read from [app/files/input](./app/files/input/). Once the records for
+a file are stored in the database, the file is moved to
+[app/files/output/ingested](./app/files/output/ingested/).
+
+If an error occurs during this copying of the file, the transaction handling ingestion
+will fail. This ensures that a file will only be ingested if the input file is copied
+successfully.
+
+
+#### Analysis
 
 If we were processing massive amounts of data here, it would make more sense
 to do this in SQL and then send the result back to Python, but I think it's
 safe to assume that a single purchase order and its invoices will never
 contain enough data for this to be a concern.
 
-We will fetch the data from the database, and perform the aggregation in
-Python before writing the result out to the file system.
+As a demonstration of ability to do so, we use both database queries and Python
+programming to aggregate data for reports.
 
 
-#### Output
+#### Report
 
-For the purposes of this project, we will simply output the final excel
-to the file system.
+The reports can be found in [app/files/output/reports](./app/files/output/reports/).
+Report file-names contain the id of the purchase order, and a time-stamp for when
+the report was generated.
 
 
 

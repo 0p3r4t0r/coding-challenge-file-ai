@@ -1,3 +1,4 @@
+import identifiers
 from models import Invoice, InvoiceLineItem, PurchaseOrder, PurchaseOrderLineItem
 import validators
 
@@ -94,7 +95,7 @@ def main():
             )
 
         if (
-            validators.validate_columns(df, PURCHASE_ORDER_COLUMNS)
+            identifiers.by_columns(df, PURCHASE_ORDER_COLUMNS)
             and validators.column_is_constant(df["PO Number"])
             and validators.column_po_line(df["PO Line"])
             and df["Item Code"].is_unique
@@ -133,7 +134,7 @@ def main():
             log_excel_file_event("Ingested Purchase Order", file)
             ...
         elif (
-            validators.validate_columns(df, INVOICE_COLUMNS)
+            identifiers.by_columns(df, INVOICE_COLUMNS)
             and validators.column_is_constant(df["Invoice Number"])
             and validators.column_is_constant(df["PO Number"])
             and df["Item Code"].is_unique
