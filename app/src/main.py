@@ -71,8 +71,8 @@ sorted_filenames = sorted(
 
 
 def main():
-    q = deque()
-    s = set()
+    report_purchase_order_ids_queue = deque()
+    report_purchase_order_ids_set = set()
 
     for file in sorted_filenames:
         df = pd.read_excel(file, sheet_name=0)
@@ -113,9 +113,9 @@ def main():
                         )
                         session.add(line_item)
                     session.commit()
-                    if purchase_order.id not in s:
-                        q.append(purchase_order.id)
-                    s.add(purchase_order.id)
+                    if purchase_order.id not in report_purchase_order_ids_set:
+                        report_purchase_order_ids_queue.append(purchase_order.id)
+                    report_purchase_order_ids_set.add(purchase_order.id)
             except Exception as e:
                 log_excel_file_event("Failed to Ingest Purchase Order", file)
                 logging.error(e)
@@ -159,18 +159,18 @@ def main():
                     session.commit()
                     log_excel_file_event("Ingested Invoice", file)
 
-                    if purchase_order.id not in s:
-                        q.append(purchase_order.id)
-                    s.add(purchase_order.id)
+                    if purchase_order.id not in report_purchase_order_ids_set:
+                        report_purchase_order_ids_queue.append(purchase_order.id)
+                    report_purchase_order_ids_set.add(purchase_order.id)
             except Exception as e:
                 log_excel_file_event("Failed to Ingest Invoice", file)
                 logging.error(e)
         else:
             log_excel_file_event("Unsupported Format", file)
 
-    while q:
-        purchase_order_id = q.popleft()
-        s.remove(purchase_order_id)
+    while report_purchase_order_ids_queue:
+        purchase_order_id = report_purchase_order_ids_queue.popleft()
+        report_purchase_order_ids_set.remove(purchase_order_id)
 
         with Session(engine) as session:
             summary, reconciliation_report = reports.summary_and_reconciliation(
@@ -211,6 +211,8 @@ def main():
 
                 for _, worksheet in writer.sheets.items():
                     worksheet.set_column(0, worksheet.dim_colmax, 20)
+
+            reports.create_report_db_records(session, purchase_order_id)
 
 
 if __name__ == "__main__":

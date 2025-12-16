@@ -1,4 +1,4 @@
-from models import PurchaseOrderLineItem, Invoice, InvoiceLineItem
+from models import Invoice, InvoiceLineItem, PurchaseOrderLineItem, Report
 from numpy import nan
 import pandas as pd
 from sqlalchemy import func
@@ -199,3 +199,26 @@ def raw_data(session: Session, purchase_order_id: str) -> RawData:
     invoice_lines_df = pd.read_sql(invoice_query.statement, session.bind)
 
     return RawData(po_lines_df, invoice_lines_df)
+
+
+def create_report_db_records(
+    session: Session,
+    purchase_order_id: str,
+):
+    """
+    Creates a report which is not currently used by the application, but
+    may later be used for auditing.
+    """
+    report = Report(purchase_order_id=purchase_order_id)
+    session.add(report)
+    session.flush()
+
+    invoices = (
+        session.query(Invoice)
+        .filter(Invoice.purchase_order_id == purchase_order_id)
+        .all()
+    )
+
+    report.invoices.extend(invoices)
+
+    session.commit()

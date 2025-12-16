@@ -3,7 +3,6 @@
       - Output with specific file name which includes time-stamp.
       - If there are errors output a file with the errors.
     - Write out to database
-      - Update the reports table to keep a record of the report we generated
       - add file-hashes
 - Setup unit tests that run on pre-commit
 - add file hashes
@@ -14,3 +13,5 @@
 - Validate that unit_price on purchase order matches the invoice.
 - Clean up documentation
   - Identity -> Ingest -> Analyze -> Output
+
+- https://www.postgresql.org/docs/current/transaction-iso.html
