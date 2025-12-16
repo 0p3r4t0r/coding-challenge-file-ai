@@ -1,22 +1,16 @@
 - Generate output
     - Write out to excel
+      - Output with specific file name which includes time-stamp.
+      - If there are errors output a file with the errors.
     - Write out to database
-    - Create a report_audit table
-      - Timestamp
-      - File hash
-      - File name
-      - Where the output is stored
-      - One-to-many: PO -> report
-      - Many-to-many: invoice <-> report
-    - Confirm Definition of Total Variance and Count of mismatches
-      - Do we exclude items not in the PO from total variance?
+      - Update the reports table to keep a record of the report we generated
+      - add file-hashes
 - Setup unit tests that run on pre-commit
-- Cleanup code
-- Consider indexes for SQL
+- add file hashes
+- add soft-delete
 - Add constraints to POSTGRES
+- Consider indexes for SQL
+- Cleanup code
 - Validate that unit_price on purchase order matches the invoice.
 - Clean up documentation
-
-Bonus
-- Auditing with file hashes
-- Try out AWS Infrastructure Composer
+  - Identity -> Ingest -> Analyze -> Output
