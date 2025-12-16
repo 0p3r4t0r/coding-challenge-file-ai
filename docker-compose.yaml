@@ -1,9 +1,8 @@
-version: "3.9"
-
 services:
   database:
     image: postgres:16
     container_name: po_postgres
+    profiles: [ "dev" ]
     restart: always
     environment:
       POSTGRES_USER: user
@@ -15,12 +14,28 @@ services:
       - postgres_data:/var/lib/postgresql/data
       # SQL scripts run in alphabetical order on first start
       # https://docs.docker.com/guides/pre-seeding/#pre-seed-the-database-by-bind-mounting-a-sql-script
-      - ./database:/docker-entrypoint-initdb.d  
+      - ./database:/docker-entrypoint-initdb.d
+
+  database_test:
+    image: postgres:16
+    container_name: po_postgres_test
+    profiles: [ "test" ]
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: database_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
 
   app:
     build:
       context: ./app
     container_name: po_app
+    profiles: [ "dev" ]
     depends_on:
       - database
     environment:

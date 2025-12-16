@@ -13,7 +13,8 @@
 1. [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
 2. `uv sync` to update dependencies.
 3. `uv run pre-commit install` to install pre-commit hooks.
-4. `docker-compose up` to initialize database and run the code.
+4. `docker-compose --profile dev up` to initialize database and run the code.
+  - `docker-compose --profile test up` to start the testing database.
 5. `uv run app/src/main.py` 
 
 
@@ -260,3 +261,9 @@ Documenting my thought process as I go.
 
   - [Version 0.14.0 of paracelsus](https://github.com/tedivm/paracelsus/releases/tag/v0.14.0)
     was released in response to [a bug report I created while working on this project](https://github.com/tedivm/paracelsus/issues/51)
+
+
+- Testing
+
+  - Use [pytest](https://docs.pytest.org/en/stable/index.html) because of it's
+    built-int support for [fixtures](https://docs.pytest.org/en/stable/explanation/fixtures.html)
