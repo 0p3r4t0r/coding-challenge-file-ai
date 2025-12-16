@@ -37,7 +37,7 @@
 
 ### Entity-Relationship Diagram
 
-This diagram is auto-generated on commit by [update_readme.py](./app/scripts/entity-relationship-diagrams/update_readme.py)
+This diagram is auto-generated on commit by [update_readme.py](./scripts/entity-relationship-diagrams/update_readme.py)
 using [paracelsus](https://github.com/tedivm/paracelsus).
 
 DO NOT EDIT IT MANUALLY
@@ -58,8 +58,8 @@ erDiagram
     TEXT description
     TEXT item_code
     INTEGER quantity
-    Numeric_10_2_ total_price
-    Numeric_10_2_ unit_price
+    NUMERIC(10-2) total_price
+    NUMERIC(10-2) unit_price
     TIMESTAMP updated_at
   }
 
@@ -76,8 +76,8 @@ erDiagram
     TEXT item_code
     INTEGER purchase_order_line_number
     INTEGER quantity
-    Numeric_10_2_ total_price
-    Numeric_10_2_ unit_price
+    NUMERIC(10-2) total_price
+    NUMERIC(10-2) unit_price
     TIMESTAMP updated_at
   }
 
@@ -99,7 +99,6 @@ erDiagram
   purchase_order ||--o{ report : purchase_order_id
   report ||--o{ report_invoice : report_id
   invoice ||--o{ report_invoice : invoice_id
-
 ```
 
 
@@ -236,3 +235,11 @@ Documenting my thought process as I go.
     and Pony is nowhere near production-ready as it lacks basic features and
     documentation.
 
+
+- Database Entity Relationship Diagrams
+
+  - Use [paracelsus](https://github.com/tedivm/paracelsus) to auto-generate the
+    entity-relationship diagram found in this README.
+
+  - [Version 0.14.0 of paracelsus](https://github.com/tedivm/paracelsus/releases/tag/v0.14.0)
+    was released in response to [a bug report I created while working on this project](https://github.com/tedivm/paracelsus/issues/51)

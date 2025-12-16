@@ -4,7 +4,7 @@ import re
 
 ER_DIAGRAM_HEADER = "### Entity-Relationship Diagram"
 AUTO_GENERATED_TEXT = """
-This diagram is auto-generated on commit by [update_readme.py](./app/scripts/entity-relationship-diagrams/update_readme.py)
+This diagram is auto-generated on commit by [update_readme.py](./scripts/entity-relationship-diagrams/update_readme.py)
 using [paracelsus](https://github.com/tedivm/paracelsus).
 
 DO NOT EDIT IT MANUALLY

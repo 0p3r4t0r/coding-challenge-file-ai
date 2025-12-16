@@ -188,16 +188,17 @@ wheels = [
 
 [[package]]
 name = "paracelsus"
-version = "0.13.2"
+version = "0.14.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "packaging" },
     { name = "pydot" },
     { name = "sqlalchemy" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/03/ca/adad895f85086a2942d4a47b02d0df02d99db3bd6adc904c796c487eb110/paracelsus-0.13.2.tar.gz", hash = "sha256:1865e68a6cd56e8c1a003266abfe2d4f7d8ec187c8649098d12c2ba8d4f8b48a", size = 86625, upload-time = "2025-11-22T01:36:30.514Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/d7/909fe2fd8e0ad33f8ac34f755853fdf7d0c18e17132ff3649f42c7b56438/paracelsus-0.14.0.tar.gz", hash = "sha256:3c573187781d577bff307f2782855c4c61f02c932ccab23a01a1bfb1c34e54ea", size = 91930, upload-time = "2025-12-14T19:02:39.931Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8d/0e/7a7ba5b69bd6e75533e5ae046e359a74008366139d8fd36fcbfe3ac5923a/paracelsus-0.13.2-py3-none-any.whl", hash = "sha256:330782a682225f2ece59e29d7cc93ab902d177889d88eb2a97efa09a2fd9cc45", size = 15837, upload-time = "2025-11-22T01:36:29.12Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/f2/0c3693affe9dd16ed787c0a79dc27847f948a075aa35b57b58e30d739f0d/paracelsus-0.14.0-py3-none-any.whl", hash = "sha256:5df19709c068cf2bbe063b18df3105de4d6892fdeb2353e0155192ed68df2e2a", size = 19459, upload-time = "2025-12-14T19:02:38.234Z" },
 ]
 
 [[package]]
