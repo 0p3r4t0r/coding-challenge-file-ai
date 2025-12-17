@@ -1,5 +1,5 @@
 import identifiers
-from models import Invoice, InvoiceLineItem, PurchaseOrder, PurchaseOrderLineItem
+import ingestors
 import validators
 
 from collections import deque
@@ -56,19 +56,33 @@ def log_excel_file_event(event: str, file: Path) -> str:
 
 
 ################################################################################
+# Queue
+################################################################################
+report_purchase_order_ids_queue = deque()
+report_purchase_order_ids_set = set()
+
+
+def enqueue_purchase_order_id(id: str) -> bool:
+    if id not in report_purchase_order_ids_set:
+        report_purchase_order_ids_queue.append(id)
+        report_purchase_order_ids_set.add(id)
+        return True
+    return False
+
+
+def dequeue_purchase_order_id() -> str:
+    id = report_purchase_order_ids_queue.popleft()
+    report_purchase_order_ids_set.remove(id)
+    return id
+
+
+################################################################################
 # DB Connection
 ################################################################################
 load_dotenv()
 engine = create_engine(
     f"postgresql+psycopg://{environ.get('POSTGRES_USER')}:{environ.get('POSTGRES_PASSWORD')}@{environ.get('POSTGRES_HOST')}:5432/{environ.get('POSTGRES_DB')}"
 )
-
-
-################################################################################
-# Utils
-################################################################################
-def ingest_file(file: Path):
-    file.rename(OUTPUT_DIR / "ingested" / file.name)
 
 
 ################################################################################
@@ -80,9 +94,6 @@ sorted_filenames = sorted(
 
 
 def main():
-    report_purchase_order_ids_queue = deque()
-    report_purchase_order_ids_set = set()
-
     for file in sorted_filenames:
         df = pd.read_excel(file, sheet_name=0)
         if df.empty:
@@ -93,6 +104,7 @@ def main():
             logging.info(
                 f'File name does not start with "PurchaseOrder" or "Invoice": {file.name}'
             )
+            continue
 
         if (
             identifiers.by_columns(df, PURCHASE_ORDER_COLUMNS)
@@ -107,32 +119,14 @@ def main():
             log_excel_file_event("Ingesting Purchase Order", file)
             try:
                 with Session(engine) as session:
-                    purchase_order = PurchaseOrder(id=df["PO Number"].iat[0])
-                    session.add(purchase_order)
-
-                    for _, row in df.iterrows():
-                        line_item = PurchaseOrderLineItem(
-                            purchase_order_id=purchase_order.id,
-                            purchase_order_line_number=row["PO Line"],
-                            item_code=row["Item Code"],
-                            description=row["Description"],
-                            quantity=row["Ordered Qty"],
-                            unit_price=row["Unit Price"],
-                            total_price=row["Total Amount"],
-                        )
-                        session.add(line_item)
-
-                    ingest_file(file)
+                    purchase_order_id = ingestors.purchase_order(session, df)
+                    ingestors.file(OUTPUT_DIR, file)
                     session.commit()
-                    if purchase_order.id not in report_purchase_order_ids_set:
-                        report_purchase_order_ids_queue.append(purchase_order.id)
-                    report_purchase_order_ids_set.add(purchase_order.id)
+                    enqueue_purchase_order_id(purchase_order_id)
+                    log_excel_file_event("Ingested Purchase Order", file)
             except Exception as e:
                 log_excel_file_event("Failed to Ingest Purchase Order", file)
                 logging.error(e)
-
-            log_excel_file_event("Ingested Purchase Order", file)
-            ...
         elif (
             identifiers.by_columns(df, INVOICE_COLUMNS)
             and validators.column_is_constant(df["Invoice Number"])
@@ -146,35 +140,11 @@ def main():
             log_excel_file_event("Ingesting Invoice", file)
             try:
                 with Session(engine) as session:
-                    purchase_order_id = df["PO Number"].iat[0]
-                    purchase_order = session.get(PurchaseOrder, purchase_order_id)
-                    if not purchase_order:
-                        raise Exception("No purchase order")
-
-                    invoice = Invoice(
-                        id=df["Invoice Number"].iat[0],
-                        purchase_order_id=purchase_order.id,
-                    )
-                    session.add(invoice)
-
-                    for _, row in df.iterrows():
-                        line_item = InvoiceLineItem(
-                            invoice_id=invoice.id,
-                            item_code=row["Item Code"],
-                            description=row["Description"],
-                            quantity=row["Invoiced Qty"],
-                            unit_price=row["Unit Price"],
-                            total_price=row["Total Amount"],
-                        )
-                        session.add(line_item)
-
-                    ingest_file(file)
+                    purchase_order_id = ingestors.invoice(session, df)
+                    ingestors.file(OUTPUT_DIR, file)
                     session.commit()
+                    enqueue_purchase_order_id(purchase_order_id)
                     log_excel_file_event("Ingested Invoice", file)
-
-                    if purchase_order.id not in report_purchase_order_ids_set:
-                        report_purchase_order_ids_queue.append(purchase_order.id)
-                    report_purchase_order_ids_set.add(purchase_order.id)
             except Exception as e:
                 log_excel_file_event("Failed to Ingest Invoice", file)
                 logging.error(e)
@@ -182,8 +152,7 @@ def main():
             log_excel_file_event("Unsupported Format", file)
 
     while report_purchase_order_ids_queue:
-        purchase_order_id = report_purchase_order_ids_queue.popleft()
-        report_purchase_order_ids_set.remove(purchase_order_id)
+        purchase_order_id = dequeue_purchase_order_id()
 
         with Session(engine) as session:
             session.connection(

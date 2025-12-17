@@ -128,7 +128,7 @@ order and all invoices and in order to do so we require the following...
 
 ```mermaid
 flowchart LR
-    Identification --> Validation --> Ingestion --> Analysis --> Report
+    Identification --> Validation --> Ingestion --> Report
 ```
 
 
