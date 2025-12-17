@@ -30,8 +30,14 @@ CREATE TABLE invoice_line_item (
     FOREIGN KEY (invoice_id) REFERENCES invoice (id) ON DELETE CASCADE
 );
 
+
 -- Add trigger for update_at
 CREATE TRIGGER trg_purchase_invoice_line_item_updated_at
 BEFORE UPDATE ON invoice_line_item
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+
+-- Create indexes
+CREATE INDEX idx_invoice_purchase_order_id
+    ON invoice(purchase_order_id);

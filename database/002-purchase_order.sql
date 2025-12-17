@@ -35,3 +35,8 @@ CREATE TRIGGER trg_purchase_order_line_item_updated_at
 BEFORE UPDATE ON purchase_order_line_item
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+
+-- Create indexes
+CREATE INDEX idx_po_line_item_purchase_order_id
+ON purchase_order_line_item(purchase_order_id);

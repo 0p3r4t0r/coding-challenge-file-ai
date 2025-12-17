@@ -6,7 +6,6 @@
     simply concatenate the csvs.
 - add filename of report to db report record
 - add soft-delete
-- Consider indexes for SQL
 
 - Validate that unit_price on purchase order matches the invoice.
 - Final cleanup of code -- add comments for the walkthrough

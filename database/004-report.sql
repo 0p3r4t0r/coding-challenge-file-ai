@@ -25,3 +25,7 @@ CREATE TABLE report_invoice (
         REFERENCES invoice (id)
         ON DELETE CASCADE
 );
+
+
+-- Create Indexes
+-- Report tables are purely for auditing purposes and may not be accessed frequently.
