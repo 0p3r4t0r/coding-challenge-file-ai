@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import psycopg
 import pytest
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 
 
@@ -45,10 +45,19 @@ def test_engine():
 
 @pytest.fixture
 def db_session(test_engine):
-    """Ensure isolation between runs: create a new session for each test, rollback after the test."""
     connection = test_engine.connect()
     transaction = connection.begin()
+
     session = Session(bind=connection)
+
+    # Start a SAVEPOINT
+    session.begin_nested()
+
+    # Restart SAVEPOINT after each rollback (IntegrityError, etc.)
+    @event.listens_for(session, "after_transaction_end")
+    def restart_savepoint(sess, trans):
+        if trans.nested and not trans._parent.nested:
+            sess.begin_nested()
 
     yield session
 

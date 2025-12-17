@@ -23,6 +23,9 @@ CREATE TABLE purchase_order_line_item (
     -- The same item should not be listed on multiple lines in a given purchase order.
     UNIQUE(purchase_order_id, item_code),
 
+    CONSTRAINT purchase_order_line_item_total_price_check
+        CHECK (quantity * unit_price = total_price),
+
     FOREIGN KEY (purchase_order_id) REFERENCES purchase_order (id) ON DELETE CASCADE
 );
 

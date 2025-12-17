@@ -6,7 +6,6 @@
     simply concatenate the csvs.
 - add filename of report to db report record
 - add soft-delete
-- Add constraints to POSTGRES
 - Consider indexes for SQL
 
 - Validate that unit_price on purchase order matches the invoice.

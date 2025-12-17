@@ -24,6 +24,9 @@ CREATE TABLE invoice_line_item (
     -- The same item should not be listed on multiple lines in a given invoice.
     UNIQUE(invoice_id, item_code),
 
+    CONSTRAINT purchase_order_line_item_total_price_check
+        CHECK (quantity * unit_price = total_price),
+
     FOREIGN KEY (invoice_id) REFERENCES invoice (id) ON DELETE CASCADE
 );
 
