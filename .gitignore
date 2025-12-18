@@ -10,4 +10,4 @@ wheels/
 .venv
 
 # Mac files
-.DS_Store
+t .DS_Store
