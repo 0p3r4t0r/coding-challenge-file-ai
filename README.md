@@ -10,12 +10,19 @@
 
 ## Quickstart
 
+ - Just run the repo: `docker-compose --profile dev up`
+ - Done.
+ - Use `bash ./scripts/reset.sh` to reset before another run.
+
+
 1. [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
 2. `uv sync` to update dependencies.
 3. `uv run pre-commit install` to install pre-commit hooks.
 4. `docker-compose --profile dev up` to initialize database and run the code.
   - `docker-compose --profile test up` to start the testing database.
-5. `uv run app/src/main.py` 
+5. If you need to run the app locally: `docker-compose --profile dev database -d`
+    then **from the `app` directory** run `uv run ./src/main.py` .
+6. To reset the repo for another run, **from the root directory** run `bash ./scripts/reset.sh`
 
 
 
