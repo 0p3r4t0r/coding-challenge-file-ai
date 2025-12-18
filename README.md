@@ -145,7 +145,10 @@ order and all invoices and in order to do so we require the following...
 
 ```mermaid
 flowchart LR
-    Validate File Name -> Identification --> Validation --> Ingestion --> Report
+    ValidateFileName[Validate File Name] --> Identification
+    Identification --> Validation
+    Validation --> Ingestion
+    Ingestion --> Report
 ```
 
 When a new invoice or purchase order is ingested, the id of the purchase order
