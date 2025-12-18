@@ -70,6 +70,7 @@ def summary_and_reconciliation(
             == grouped_invoice_items_subq.c.invoice_item_code,
             full=True,
         )
+        .filter(PurchaseOrderLineItem.purchase_order_id == purchase_order_id)
         .all()
     )
 
