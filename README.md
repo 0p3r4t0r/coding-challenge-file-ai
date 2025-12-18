@@ -18,8 +18,20 @@
 5. `uv run app/src/main.py` 
 
 
+
+
 ## Testing
-TODO
+
+- Bring up the test db `docker-compose --profile test up -d`
+  - The test database is guaranteed to be identical to the `dev` database.
+  
+- From [./app](./app) execute `uv run pytest`
+
+- The test db uses transactions to automatically reset after each test.
+  If you need to wipe the db for some reason, simply run the following.
+  
+  - `docker-compose --profile test down -v`
+  - `docker-compose --profile test up -d`
 
 
 
@@ -128,13 +140,39 @@ order and all invoices and in order to do so we require the following...
 
 ```mermaid
 flowchart LR
-    Identification --> Validation --> Ingestion --> Report
+    Validate File Name -> Identification --> Validation --> Ingestion --> Report
 ```
+
+When a new invoice or purchase order is ingested, the id of the purchase order
+goes into a queue. The `Report` phase reads purchase orders from the queue and
+generates a report for each one.
+
+Purchase orders are unique within the queue, so at most one report will be
+generated per purchase order, even if multiple invoices come in before the `Report`
+phase runs.
+
+
+The report phases sets the transaction isolation level to Serializable to ensure
+no incoming data can interfere while a report is being generated.
+[Postgres Docs: transactions](https://www.postgresql.org/docs/current/transaction-iso.html)
+
+
+
+
+#### Validate File Name
+
+File names must start with either `Invoice` or `PurchaseOrder`. This is because
+if files are batch-loaded we ensure that purchase orders are ingested before invoices.
+
+If an invoice references a purchase order that has not been ingested, it is considered invalid.
+We certainly don't want to allow the system to ingest invoices for purchase orders that
+do not exist!
 
 
 #### Identification
 
 Relies solely on the columns in the excel sheet.
+
 
 #### Validation
 
@@ -267,3 +305,30 @@ Documenting my thought process as I go.
 
   - Use [pytest](https://docs.pytest.org/en/stable/index.html) because of it's
     built-int support for [fixtures](https://docs.pytest.org/en/stable/explanation/fixtures.html)
+
+
+
+
+## Going Further
+
+In a production system I would implement the following additional features.
+
+- Add file-hashes
+
+  - Excel stores metadata which can change if a file is saved, even if the contents remain the same.
+    Thus, we need to hash the data itself, and not the file.
+
+    1. Deterministically order the columns of your data.
+    2. Write each sheet of the report out to a csv.
+    3. Concatenate the CSVs, and hash the result.
+  
+  - This gives you the ability to verify that the data in a file matches the data in a file
+    issued by your system.
+
+- Add filename of report to db report record.
+
+- Add soft-delete.
+  
+  - For systems designed to be audited, it's often better to soft-delete records.
+  
+  - To keep queries efficient with soft-deletes I would use [partial indexes](https://www.postgresql.org/docs/current/indexes-partial.html)
