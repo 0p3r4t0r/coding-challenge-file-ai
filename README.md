@@ -34,6 +34,11 @@
   - `docker-compose --profile test up -d`
 
 
+I didn't want to spend a lot of time writing unit tests for a demo project.
+I've been curious about using docker profiles for integration testing with a db,
+so I decided I would explore that instead.
+
+
 
 
 ## Functional Requirements Checklist
